@@ -15,30 +15,30 @@ import (
 	go_openai "github.com/sashabaranov/go-openai"
 )
 
-// Conn 是与连接相关的接口，用于发送消息
+// Conn is an interface related to connections, used for sending messages
 type Conn interface {
 	WriteMessage(messageType int, data []byte) error
 }
 
-// Manager MCP服务管理器
+// Manager MCP service manager
 type Manager struct {
 	logger                *utils.Logger
 	conn                  Conn
 	funcHandler           types.FunctionRegistryInterface
 	configPath            string
 	clients               map[string]MCPClient
-	localClient           *LocalClient // 本地MCP客户端
+	localClient           *LocalClient // Local MCP client
 	tools                 []string
-	XiaoZhiMCPClient      *XiaoZhiMCPClient // XiaoZhiMCPClient用于处理小智MCP相关逻辑
-	bRegisteredXiaoZhiMCP bool              // 是否已注册小智MCP工具
-	isInitialized         bool              // 添加初始化状态标记
+	XiaoZhiMCPClient      *XiaoZhiMCPClient // XiaoZhiMCPClient used for handling Xiaozhi MCP related logic
+	bRegisteredXiaoZhiMCP bool              // Whether Xiaozhi MCP tools have been registered
+	isInitialized         bool              // Add initialization status flag
 	systemCfg             *configs.Config
 	mu                    sync.RWMutex
 }
 
-// NewManagerForPool 创建用于资源池的MCP管理器
+// NewManagerForPool creates MCP manager for resource pool
 func NewManagerForPool(lg *utils.Logger, cfg *configs.Config) *Manager {
-	lg.Info("创建MCP Manager用于资源池")
+	lg.Info("Creating MCP Manager for resource pool")
 	projectDir := utils.GetProjectDir()
 	configPath := filepath.Join(projectDir, ".mcp_server_settings.json")
 
@@ -48,23 +48,23 @@ func NewManagerForPool(lg *utils.Logger, cfg *configs.Config) *Manager {
 
 	mgr := &Manager{
 		logger:                lg,
-		funcHandler:           nil, // 将在绑定连接时设置
-		conn:                  nil, // 将在绑定连接时设置
+		funcHandler:           nil, // Will be set when binding connection
+		conn:                  nil, // Will be set when binding connection
 		configPath:            configPath,
 		clients:               make(map[string]MCPClient),
 		tools:                 make([]string, 0),
 		bRegisteredXiaoZhiMCP: false,
 		systemCfg:             cfg,
 	}
-	// 预先初始化非连接相关的MCP服务器
+	// Pre-initialize MCP servers that don't depend on connections
 	if err := mgr.preInitializeServers(); err != nil {
-		lg.Error("预初始化MCP服务器失败: %v", err)
+		lg.Error("Failed to pre-initialize MCP servers: %v", err)
 	}
 
 	return mgr
 }
 
-// preInitializeServers 预初始化不依赖连接的MCP服务器
+// preInitializeServers pre-initializes MCP servers that don't depend on connections
 func (m *Manager) preInitializeServers() error {
 	m.localClient, _ = NewLocalClient(m.logger, m.systemCfg)
 	m.localClient.Start(context.Background())
@@ -76,7 +76,7 @@ func (m *Manager) preInitializeServers() error {
 	}
 
 	for name, srvConfig := range config {
-		// 只初始化不需要连接的外部MCP服务器
+		// Only initialize external MCP servers that don't require connections
 		srvConfigMap, ok := srvConfig.(map[string]interface{})
 
 		if !ok {
@@ -84,7 +84,7 @@ func (m *Manager) preInitializeServers() error {
 			continue
 		}
 
-		// 创建并启动外部MCP客户端
+		// Create and start external MCP client
 		clientConfig, err := convertConfig(srvConfigMap)
 		if err != nil {
 			m.logger.Error("Failed to convert config for server %s: %v", name, err)
@@ -108,7 +108,7 @@ func (m *Manager) preInitializeServers() error {
 	return nil
 }
 
-// BindConnection 绑定连接到MCP Manager
+// BindConnection binds connection to MCP Manager
 func (m *Manager) BindConnection(
 	conn Conn,
 	fh types.FunctionRegistryInterface,
@@ -125,9 +125,9 @@ func (m *Manager) BindConnection(
 	deviceID := paramsMap["device_id"].(string)
 	clientID := paramsMap["client_id"].(string)
 	token := paramsMap["token"].(string)
-	m.logger.Debug("绑定连接到MCP Manager, sessionID: %s, visionURL: %s", sessionID, visionURL)
+	m.logger.Debug("Binding connection to MCP Manager, sessionID: %s, visionURL: %s", sessionID, visionURL)
 
-	// 优化：检查XiaoZhiMCPClient是否需要重新启动
+	// Optimization: Check if XiaoZhiMCPClient needs to be restarted
 	if m.XiaoZhiMCPClient == nil {
 		m.XiaoZhiMCPClient = NewXiaoZhiMCPClient(m.logger, conn, sessionID)
 		m.clients["xiaozhi"] = m.XiaoZhiMCPClient
@@ -136,32 +136,32 @@ func (m *Manager) BindConnection(
 		m.XiaoZhiMCPClient.SetToken(token)
 
 		if err := m.XiaoZhiMCPClient.Start(context.Background()); err != nil {
-			return fmt.Errorf("启动XiaoZhi MCP客户端失败: %v", err)
+			return fmt.Errorf("failed to start XiaoZhi MCP client: %v", err)
 		}
 	} else {
-		// 重新绑定连接而不是重新创建
+		// Re-bind connection instead of recreating
 		m.XiaoZhiMCPClient.SetConnection(conn)
 		m.XiaoZhiMCPClient.SetID(deviceID, clientID)
 		m.XiaoZhiMCPClient.SetToken(token)
 		if !m.XiaoZhiMCPClient.IsReady() {
 			if err := m.XiaoZhiMCPClient.Start(context.Background()); err != nil {
-				return fmt.Errorf("重启XiaoZhi MCP客户端失败: %v", err)
+				return fmt.Errorf("failed to restart XiaoZhi MCP client: %v", err)
 			}
 		}
 	}
 
-	// 重新注册工具（只注册尚未注册的）
+	// Re-register tools (only register those not yet registered)
 	m.registerAllToolsIfNeeded()
 	return nil
 }
 
-// 新增方法：只在需要时注册工具
+// New method: only register tools when needed
 func (m *Manager) registerAllToolsIfNeeded() {
 	if m.funcHandler == nil {
 		return
 	}
 
-	// 检查是否已注册，避免重复注册
+	// Check if already registered to avoid duplicate registration
 	if !m.bRegisteredXiaoZhiMCP && m.XiaoZhiMCPClient != nil && m.XiaoZhiMCPClient.IsReady() {
 		tools := m.XiaoZhiMCPClient.GetAvailableTools()
 		for _, tool := range tools {
@@ -171,7 +171,7 @@ func (m *Manager) registerAllToolsIfNeeded() {
 		m.bRegisteredXiaoZhiMCP = true
 	}
 
-	// 注册其他外部MCP客户端工具
+	// Register other external MCP client tools
 	for name, client := range m.clients {
 		if name != "xiaozhi" && client.IsReady() {
 			tools := client.GetAvailableTools()
@@ -187,7 +187,7 @@ func (m *Manager) registerAllToolsIfNeeded() {
 	}
 }
 
-// 新增辅助方法
+// New helper method
 func (m *Manager) isToolRegistered(toolName string) bool {
 	for _, tool := range m.tools {
 		if tool == toolName {
@@ -197,23 +197,23 @@ func (m *Manager) isToolRegistered(toolName string) bool {
 	return false
 }
 
-// 改进Reset方法
+// Improved Reset method
 func (m *Manager) Reset() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// 重置连接相关状态但保留可复用的客户端结构
+	// Reset connection-related state but keep reusable client structures
 	m.conn = nil
 	m.funcHandler = nil
 	m.bRegisteredXiaoZhiMCP = false
 	m.tools = make([]string, 0)
 
-	// 对xiaozhi客户端进行连接重置而不是完全销毁
+	// Reset connection for xiaozhi client instead of complete destruction
 	if m.XiaoZhiMCPClient != nil {
 		m.XiaoZhiMCPClient.ResetConnection() // 新增方法
 	}
 
-	// 对外部MCP客户端进行连接重置
+	// Reset connection for external MCP clients
 	for name, client := range m.clients {
 		if name != "xiaozhi" {
 			if resetter, ok := client.(interface{ ResetConnection() error }); ok {
@@ -225,7 +225,7 @@ func (m *Manager) Reset() error {
 	return nil
 }
 
-// Cleanup 实现Provider接口的Cleanup方法
+// Cleanup implements the Cleanup method of the Provider interface
 func (m *Manager) Cleanup() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -233,7 +233,7 @@ func (m *Manager) Cleanup() error {
 	return m.Reset()
 }
 
-// LoadConfig 加载MCP服务配置
+// LoadConfig loads MCP service configuration
 func (m *Manager) LoadConfig() map[string]interface{} {
 	if m.configPath == "" {
 		return nil
@@ -258,52 +258,52 @@ func (m *Manager) LoadConfig() map[string]interface{} {
 }
 
 func (m *Manager) HandleXiaoZhiMCPMessage(msgMap map[string]interface{}) error {
-	// 处理小智MCP消息
+	// Handle Xiaozhi MCP messages
 	if m.XiaoZhiMCPClient == nil {
 		return fmt.Errorf("XiaoZhiMCPClient is not initialized")
 	}
 	m.XiaoZhiMCPClient.HandleMCPMessage(msgMap)
 	if m.XiaoZhiMCPClient.IsReady() && !m.bRegisteredXiaoZhiMCP {
-		// 注册小智MCP工具
+		// Register Xiaozhi MCP tools
 		m.registerTools(m.XiaoZhiMCPClient.GetAvailableTools())
 		m.bRegisteredXiaoZhiMCP = true
 	}
 	return nil
 }
 
-// convertConfig 将map配置转换为Config结构
+// convertConfig converts map configuration to Config structure
 func convertConfig(cfg map[string]interface{}) (*Config, error) {
-	// 实现从map到Config结构的转换
+	// Implement conversion from map to Config structure
 	config := &Config{
-		Enabled: true, // 默认启用
+		Enabled: true, // Default enabled
 	}
 
-	// 服务器地址
+	// Server address
 	if addr, ok := cfg["server_address"].(string); ok {
 		config.ServerAddress = addr
 	}
 
-	// 服务器端口
+	// Server port
 	if port, ok := cfg["server_port"].(float64); ok {
 		config.ServerPort = int(port)
 	}
 
-	// 命名空间
+	// Namespace
 	if ns, ok := cfg["namespace"].(string); ok {
 		config.Namespace = ns
 	}
 
-	// 节点ID
+	// Node ID
 	if nodeID, ok := cfg["node_id"].(string); ok {
 		config.NodeID = nodeID
 	}
 
-	// 命令行连接方式
+	// Command line connection method
 	if cmd, ok := cfg["command"].(string); ok {
 		config.Command = cmd
 	}
 
-	// 命令行参数
+	// Command line arguments
 	if args, ok := cfg["args"].([]interface{}); ok {
 		for _, arg := range args {
 			if argStr, ok := arg.(string); ok {
@@ -346,7 +346,7 @@ func (m *Manager) registerTools(tools []go_openai.Tool) {
 		m.tools = append(m.tools, toolName)
 		if m.funcHandler != nil {
 			if err := m.funcHandler.RegisterFunction(toolName, tool); err != nil {
-				m.logger.Error(fmt.Sprintf("注册工具失败: %s, 错误: %v", toolName, err))
+				m.logger.Error(fmt.Sprintf("Failed to register tool: %s, error: %v", toolName, err))
 				continue
 			}
 			// m.logger.Info("Registered tool: [%s] %s", toolName, tool.Function.Description)

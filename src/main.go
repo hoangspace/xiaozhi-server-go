@@ -1,6 +1,6 @@
-// @title 小智服务端 API 文档
+// @title Xiaozhi Server API Documentation
 // @version 1.0
-// @description 小智服务端，包含OTA与Vision等接口
+// @description Xiaozhi server, including OTA and Vision interfaces
 // @host localhost:8080
 // @BasePath /api
 package main
@@ -33,7 +33,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	// 导入所有providers以确保init函数被调用
+	// Import all providers to ensure init functions are called
 	_ "xiaozhi-server-go/src/core/providers/asr/deepgram"
 	_ "xiaozhi-server-go/src/core/providers/asr/doubao"
 	_ "xiaozhi-server-go/src/core/providers/asr/gosherpa"
@@ -53,23 +53,23 @@ import (
 )
 
 func LoadConfigAndLogger() (*configs.Config, *utils.Logger, error) {
-	// 初始化数据库连接
+	// Initialize database connection
 	_, _, err := database.InitDB()
 	if err != nil {
-		fmt.Println("数据库连接失败: %v", err)
+		fmt.Println("Database connection failed: %v", err)
 	}
-	// 加载配置,默认使用.config.yaml
+	// Load configuration, default using .config.yaml
 	config, configPath, err := configs.LoadConfig(database.GetServerConfigDB())
 	if err != nil {
 		return nil, nil, err
 	}
 
-	// 初始化日志系统
+	// Initialize logging system
 	logger, err := utils.NewLogger((*utils.LogCfg)(&config.Log))
 	if err != nil {
 		return nil, nil, err
 	}
-	logger.Info("日志系统初始化成功, 配置文件路径: %s", configPath)
+	logger.Info("Logging system initialized successfully, config file path: %s", configPath)
 	utils.DefaultLogger = logger
 
 	database.SetLogger(logger)
@@ -77,24 +77,24 @@ func LoadConfigAndLogger() (*configs.Config, *utils.Logger, error) {
 	return config, logger, nil
 }
 
-// initAuthManager 初始化认证管理器
+// initAuthManager initializes the authentication manager
 func initAuthManager(config *configs.Config, logger *utils.Logger) (*auth.AuthManager, error) {
 	if !config.Server.Auth.Enabled {
-		logger.Info("认证功能未启用")
+		logger.Info("Authentication feature not enabled")
 		return nil, nil
 	}
 
-	// 创建存储配置
+	// Create storage configuration
 	storeConfig := &store.StoreConfig{
 		Type:     config.Server.Auth.Store.Type,
 		ExpiryHr: config.Server.Auth.Store.Expiry,
 		Config:   make(map[string]interface{}),
 	}
 
-	// 创建认证管理器
+	// Create authentication manager
 	authManager, err := auth.NewAuthManager(storeConfig, logger)
 	if err != nil {
-		return nil, fmt.Errorf("初始化认证管理器失败: %v", err)
+		return nil, fmt.Errorf("failed to initialize authentication manager: %v", err)
 	}
 
 	return authManager, nil
@@ -107,24 +107,24 @@ func StartTransportServer(
 	g *errgroup.Group,
 	groupCtx context.Context,
 ) (*transport.TransportManager, error) {
-	// 初始化资源池管理器
+	// Initialize resource pool manager
 	poolManager, err := pool.NewPoolManager(config, logger)
 	if err != nil {
-		logger.Error(fmt.Sprintf("初始化资源池管理器失败: %v", err))
-		return nil, fmt.Errorf("初始化资源池管理器失败: %v", err)
+		logger.Error(fmt.Sprintf("failed to initialize resource pool manager: %v", err))
+		return nil, fmt.Errorf("failed to initialize resource pool manager: %v", err)
 	}
 
-	// 初始化任务管理器
+	// Initialize task manager
 	taskMgr := task.NewTaskManager(task.ResourceConfig{
 		MaxWorkers:        12,
 		MaxTasksPerClient: 20,
 	})
 	taskMgr.Start()
 
-	// 创建传输管理器
+	// Create transport manager
 	transportManager := transport.NewTransportManager(config, logger)
 
-	// 创建连接处理器工厂
+	// Create connection handler factory
 	handlerFactory := transport.NewDefaultConnectionHandlerFactory(
 		config,
 		poolManager,
@@ -132,54 +132,54 @@ func StartTransportServer(
 		logger,
 	)
 
-	// 根据配置启用不同的传输层
+	// Enable different transport layers based on configuration
 	enabledTransports := make([]string, 0)
 
-	// 检查WebSocket传输层配置
+	// Check WebSocket transport layer configuration
 	if config.Transport.WebSocket.Enabled {
 		wsTransport := websocket.NewWebSocketTransport(config, logger)
 		wsTransport.SetConnectionHandler(handlerFactory)
 		transportManager.RegisterTransport("websocket", wsTransport)
 		enabledTransports = append(enabledTransports, "WebSocket")
-		logger.Debug("WebSocket传输层已注册")
+		logger.Debug("WebSocket transport layer registered")
 	}
 
 	if len(enabledTransports) == 0 {
-		return nil, fmt.Errorf("没有启用任何传输层")
+		return nil, fmt.Errorf("no transport layer enabled")
 	}
 
-	logger.Info("启用的传输层: %v", enabledTransports)
+	logger.Info("Enabled transport layers: %v", enabledTransports)
 
-	// 启动传输层服务
+	// Start transport layer service
 	g.Go(func() error {
-		// 监听关闭信号
+		// Listen for shutdown signals
 		go func() {
 			<-groupCtx.Done()
-			logger.Info("收到关闭信号，开始关闭所有传输层...")
+			logger.Info("Received shutdown signal, starting to close all transport layers...")
 			if err := transportManager.StopAll(); err != nil {
-				logger.Error("关闭传输层失败: %v", err)
+				logger.Error("Failed to close transport layers: %v", err)
 			} else {
-				logger.Info("所有传输层已优雅关闭")
+				logger.Info("All transport layers gracefully closed")
 			}
 		}()
 
-		// 使用传输管理器启动服务
+		// Use transport manager to start service
 		if err := transportManager.StartAll(groupCtx); err != nil {
 			if groupCtx.Err() != nil {
-				return nil // 正常关闭
+				return nil // Normal shutdown
 			}
-			logger.Error("传输层运行失败 %v", err)
+			logger.Error("Transport layer failed to run: %v", err)
 			return err
 		}
 		return nil
 	})
 
-	logger.Debug("传输层服务已成功启动")
+	logger.Debug("Transport layer service started successfully")
 	return transportManager, nil
 }
 
 func StartHttpServer(config *configs.Config, logger *utils.Logger, g *errgroup.Group, groupCtx context.Context) (*http.Server, error) {
-	// 初始化Gin引擎
+	// Initialize Gin engine
 	if config.Log.LogLevel == "debug" {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -188,9 +188,9 @@ func StartHttpServer(config *configs.Config, logger *utils.Logger, g *errgroup.G
 	router := gin.Default()
 	router.SetTrustedProxies([]string{"0.0.0.0"})
 
-	// 配置全局CORS中间件
+	// Configure global CORS middleware
 	corsConfig := cors.Config{
-		AllowOrigins: []string{"*"}, // 生产环境应指定具体域名
+		AllowOrigins: []string{"*"}, // Production environment should specify specific domains
 		AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 		AllowHeaders: []string{
 			"Origin",
@@ -207,73 +207,73 @@ func StartHttpServer(config *configs.Config, logger *utils.Logger, g *errgroup.G
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}
-	// 应用全局CORS中间件
+	// Apply global CORS middleware
 	router.Use(cors.New(corsConfig))
 
-	logger.Debug("全局CORS中间件已配置，支持OPTIONS预检请求")
-	// API路由全部挂载到/api前缀下
+	logger.Debug("Global CORS middleware configured, supports OPTIONS preflight requests")
+	// All API routes mounted under /api prefix
 	apiGroup := router.Group("/api")
-	// 启动OTA服务
+	// Start OTA service
 	otaService := ota.NewDefaultOTAService(config.Web.Websocket)
 	if err := otaService.Start(groupCtx, router, apiGroup); err != nil {
-		logger.Error("OTA 服务启动失败", err)
+		logger.Error("OTA service startup failed", err)
 		return nil, err
 	}
 
-	// 启动Vision服务
+	// Start Vision service
 	visionService, err := vision.NewDefaultVisionService(config, logger)
 	if err != nil {
-		logger.Error("Vision 服务初始化失败 %v", err)
+		logger.Error("Vision service initialization failed: %v", err)
 		// return nil, err
 	}
 	if visionService != nil {
 		if err := visionService.Start(groupCtx, router, apiGroup); err != nil {
-			logger.Error("Vision 服务启动失败 %v", err)
+			logger.Error("Vision service startup failed: %v", err)
 			// return nil, err
 		}
 	}
 
 	cfgServer, err := cfg.NewDefaultCfgService(config, logger)
 	if err != nil {
-		logger.Error("配置服务初始化失败 %v", err)
+		logger.Error("Configuration service initialization failed: %v", err)
 		return nil, err
 	}
 	if err := cfgServer.Start(groupCtx, router, apiGroup); err != nil {
-		logger.Error("配置服务启动失败", err)
+		logger.Error("Configuration service startup failed", err)
 		return nil, err
 	}
 
-	// HTTP Server（支持优雅关机）
+	// HTTP Server (supports graceful shutdown)
 	httpServer := &http.Server{
 		Addr:    ":" + strconv.Itoa(config.Web.Port),
 		Handler: router,
 	}
 
-	// 注册Swagger文档路由
+	// Register Swagger documentation routes
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	g.Go(func() error {
-		logger.Info(fmt.Sprintf("Gin 服务已启动，访问地址: http://0.0.0.0:%d", config.Web.Port))
+		logger.Info(fmt.Sprintf("Gin service started, access address: http://0.0.0.0:%d", config.Web.Port))
 
-		// 在单独的 goroutine 中监听关闭信号
+		// Listen for shutdown signals in a separate goroutine
 		go func() {
 			<-groupCtx.Done()
-			logger.Info("收到关闭信号，开始关闭HTTP服务...")
+			logger.Info("Received shutdown signal, starting to close HTTP service...")
 
-			// 创建关闭超时上下文
+			// Create shutdown timeout context
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 
 			if err := httpServer.Shutdown(shutdownCtx); err != nil {
-				logger.Error("HTTP服务关闭失败 %v", err)
+				logger.Error("HTTP service shutdown failed: %v", err)
 			} else {
-				logger.Info("HTTP服务已优雅关闭")
+				logger.Info("HTTP service gracefully closed")
 			}
 		}()
 
-		// ListenAndServe 返回 ErrServerClosed 时表示正常关闭
+		// ListenAndServe returns ErrServerClosed when it's a normal shutdown
 		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error("HTTP 服务启动失败 %v", err)
+			logger.Error("HTTP service startup failed: %v", err)
 			return err
 		}
 		return nil
@@ -283,19 +283,19 @@ func StartHttpServer(config *configs.Config, logger *utils.Logger, g *errgroup.G
 }
 
 func GracefulShutdown(cancel context.CancelFunc, logger *utils.Logger, g *errgroup.Group) {
-	// 监听系统信号
+	// Listen for system signals
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(sigChan)
 
-	// 等待信号
+	// Wait for signal
 	sig := <-sigChan
-	logger.Info("接收到系统信号: %v，开始优雅关闭服务", sig)
+	logger.Info("Received system signal: %v, starting graceful service shutdown", sig)
 
-	// 取消上下文，通知所有服务开始关闭
+	// Cancel context to notify all services to start shutting down
 	cancel()
 
-	// 等待所有服务关闭，设置超时保护
+	// Wait for all services to close, set timeout protection
 	done := make(chan error, 1)
 	go func() {
 		done <- g.Wait()
@@ -304,12 +304,12 @@ func GracefulShutdown(cancel context.CancelFunc, logger *utils.Logger, g *errgro
 	select {
 	case err := <-done:
 		if err != nil {
-			logger.Error("服务关闭过程中出现错误 %v", err)
+			logger.Error("Error occurred during service shutdown: %v", err)
 			os.Exit(1)
 		}
-		logger.Info("所有服务已优雅关闭")
+		logger.Info("All services gracefully closed")
 	case <-time.After(15 * time.Second):
-		logger.Error("服务关闭超时，强制退出")
+		logger.Error("Service shutdown timeout, forcing exit")
 		os.Exit(1)
 	}
 }
@@ -321,56 +321,56 @@ func startServices(
 	g *errgroup.Group,
 	groupCtx context.Context,
 ) error {
-	// 启动传输层服务
+	// Start transport layer service
 	if _, err := StartTransportServer(config, logger, authManager, g, groupCtx); err != nil {
-		return fmt.Errorf("启动传输层服务失败: %w", err)
+		return fmt.Errorf("failed to start transport layer service: %w", err)
 	}
 
-	// 启动 Http 服务
+	// Start HTTP service
 	if _, err := StartHttpServer(config, logger, g, groupCtx); err != nil {
-		return fmt.Errorf("启动 Http 服务失败: %w", err)
+		return fmt.Errorf("failed to start HTTP service: %w", err)
 	}
 
 	return nil
 }
 
 func main() {
-	// 加载配置和初始化日志系统
+	// Load configuration and initialize logging system
 	config, logger, err := LoadConfigAndLogger()
 	if err != nil {
-		fmt.Println("加载配置或初始化日志系统失败:", err)
+		fmt.Println("Failed to load configuration or initialize logging system:", err)
 		os.Exit(1)
 	}
 
-	// 初始化认证管理器
+	// Initialize authentication manager
 	authManager, err := initAuthManager(config, logger)
 	if err != nil {
-		logger.Error("初始化认证管理器失败:", err)
+		logger.Error("Failed to initialize authentication manager:", err)
 		os.Exit(1)
 	}
 
-	// 创建可取消的上下文
+	// Create cancellable context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 用 errgroup 管理两个服务
+	// Use errgroup to manage two services
 	g, groupCtx := errgroup.WithContext(ctx)
 
-	// 启动所有服务
+	// Start all services
 	if err := startServices(config, logger, authManager, g, groupCtx); err != nil {
-		logger.Error("启动服务失败:%v", err)
+		logger.Error("Failed to start services: %v", err)
 		cancel()
 		os.Exit(1)
 	}
 
-	// 启动优雅关机处理
+	// Start graceful shutdown handling
 	GracefulShutdown(cancel, logger, g)
 
-	// 关闭认证管理器
+	// Close authentication manager
 	if authManager != nil {
 		authManager.Close()
 	}
 
-	logger.Info("程序已成功退出")
+	logger.Info("Program exited successfully")
 	logger.Close()
 }

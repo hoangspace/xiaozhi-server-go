@@ -1,114 +1,113 @@
-# ✨ 小智 AI 聊天机器人后端服务（商业版）
+# ✨ Xiaozhi AI Chatbot Backend Service (Commercial Edition)
 
-小智 AI 是一个语音交互机器人，结合 Qwen、DeepSeek 等强大大模型，通过 MCP 协议连接多端设备（ESP32、Android、Python 等），实现高效自然的人机对话。
+Xiaozhi AI is a voice interaction robot that combines powerful models like Qwen and DeepSeek, connecting multiple devices (ESP32, Android, Python, etc.) through the MCP protocol to achieve efficient and natural human-machine dialogue.
 
-本项目是其后端服务，旨在提供一套 **商业级部署方案** —— 高并发、低成本、功能完整、开箱即用。
+This project is its backend service, aiming to provide a **commercial-grade deployment solution** - high concurrency, low cost, complete functionality, and ready to use out of the box.
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/aa1e2f26-92d3-4d16-a74a-68232f34cca3" alt="Xiaozhi Architecture" width="600">
 </p>
 
-项目初始基于 [虾哥的 ESP32 开源项目](https://github.com/78/xiaozhi-esp32?tab=readme-ov-file)，目前已形成完整生态，支持多种客户端协议兼容接入。
+The project was initially based on [Xiaoge's ESP32 open source project](https://github.com/78/xiaozhi-esp32?tab=readme-ov-file), and has now formed a complete ecosystem supporting multiple client protocol compatibility.
 
 ---
 
-## ✨ 核心优势
+## ✨ Core Advantages
 
-| 优势         | 说明                                                   |
+| Advantage | Description |
 | ---------- | ---------------------------------------------------- |
-| 🚀 高并发     | 单机支持 3000+ 在线，分布式可扩展至百万用户                            |
-| 👥 用户系统    | 完整的用户注册、登录、权限管理能力                                    |
-| 💰 支付集成    | 接入支付系统，助力商业闭环                                        |
-| 🛠️ 模型接入灵活 | 支持通过 API 调用多种大模型，简化部署，支持定制本地部署                       |
-| 📈 商业支持    | 提供 7×24 技术支持与运维保障                                    |
-| 🧠 模型兼容    | 支持 ASR（豆包）、TTS（EdgeTTS）、LLM（OpenAI、Ollama）、图文解说（智谱）等 |
+| 🚀 High Concurrency | Single machine supports 3000+ online users, distributed scaling to millions of users |
+| 👥 User System | Complete user registration, login, and permission management capabilities |
+| 💰 Payment Integration | Integrated payment system to help commercial closed-loop |
+| 🛠️ Flexible Model Integration | Support calling multiple large models through API, simplified deployment, supports custom local deployment |
+| 📈 Commercial Support | Provides 7×24 technical support and operation guarantee |
+| 🧠 Model Compatibility | Supports ASR (Doubao), TTS (EdgeTTS), LLM (OpenAI, Ollama), Image Description (Zhipu), etc. |
 
 ---
 
-## ✅ 功能清单
+## ✅ Feature List
 
-* [x] 支持 websocket 连接
-* [x] 支持 PCM / Opus 格式语音对话
-* [x] 支持大模型：ASR（豆包流式）、TTS（EdgeTTS/豆包）、LLM（OpenAI API、Ollama）
-* [x] 支持语音控制调用摄像头识别图像（智谱 API）
-* [x] 支持 auto/manual/realtime 三种对话模式，支持对话实时打断
-* [x] 支持 ESP32 小智客户端、Python 客户端、Android 客户端连入，无需校验
-* [x] OTA 固件下发
-* [x] 支持 MCP 协议（客户端 / 本地 / 服务器），可接入高德地图、天气查询等
-* [x] 支持语音控制切换角色声音
-* [x] 支持语音控制切换预设角色
-* [x] 支持语音控制播放音乐
-* [x] 支持单机部署服务
-* [x] 支持本地数据库 sqlite
-* [x] 支持coze工作流 
-* [x] 支持Docker部署
-* [x] 支持MySQL,PostgreSQL（商务版功能）
-* [x] 支持 MQTT 连接（商务版功能）
-* [x] 支持dify工作流 （商务版功能）
-* [x] 管理后台(商务版已完成：设备绑定，用户、智能体管理)
+* [x] Support WebSocket connections
+* [x] Support PCM / Opus format voice dialogue
+* [x] Support large models: ASR (Doubao streaming), TTS (EdgeTTS/Doubao), LLM (OpenAI API, Ollama)
+* [x] Support voice control to call camera for image recognition (Zhipu API)
+* [x] Support auto/manual/realtime three dialogue modes, support real-time dialogue interruption
+* [x] Support ESP32 Xiaozhi client, Python client, Android client connection without verification
+* [x] OTA firmware distribution
+* [x] Support MCP protocol (client / local / server), can integrate Amap, weather query, etc.
+* [x] Support voice control to switch character voices
+* [x] Support voice control to switch preset characters
+* [x] Support voice control to play music
+* [x] Support single machine deployment service
+* [x] Support local database sqlite
+* [x] Support Coze workflow
+* [x] Support Docker deployment
+* [x] Support MySQL, PostgreSQL (Commercial Edition feature)
+* [x] Support MQTT connection (Commercial Edition feature)
+* [x] Support Dify workflow (Commercial Edition feature)
+* [x] Management backend (Commercial Edition completed: device binding, user, agent management)
 
 
 ---
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 1. 下载 Release 版
+### 1. Download Release Version
 
-> 推荐直接下载 Release 版本，无需配置开发环境：
+> Recommended to directly download the Release version without configuring the development environment:
 
-👉 [点击前往 Releases 页面](https://github.com/AnimeAIChat/xiaozhi-server-go/releases)
+👉 [Click to go to Releases page](https://github.com/AnimeAIChat/xiaozhi-server-go/releases)
 
-* 选择你平台对应的版本（如 Windows: `windows-amd64-server.exe`）
-* `.upx.exe` 是压缩版本，功能一致，体积更小，适合远程部署
+* Choose the version corresponding to your platform (e.g., Windows: `windows-amd64-server.exe`)
+* `.upx.exe` is a compressed version with the same functionality but smaller size, suitable for remote deployment
 
 ---
 
+### 2. Configure `.config.yaml`
 
-### 2. 配置 `.config.yaml`
+* Recommended to copy `config.yaml` and rename it to `.config.yaml`
+* Configure model, WebSocket, OTA address and other fields as needed
+* It is not recommended to add or remove field structures on your own
 
-* 推荐复制一份 `config.yaml` 改名为 `.config.yaml`
-* 按需求配置模型、WebSocket、OTA 地址等字段
-* 不建议自行删减字段结构
-
-#### WebSocket 地址配置（必配）
+#### WebSocket Address Configuration (Required)
 
 ```yaml
 web:
   websocket: ws://your-server-ip:8000
 ```
 
-用于 OTA 服务下发给客户端的连接地址，ESP32 客户端会自动从此地址连接 WS，不再手动配置。
+Used for OTA service to distribute connection addresses to clients. ESP32 clients will automatically connect to WS from this address without manual configuration.
 
-注：如果是局域网调试，your-server-ip要配置为**电脑在局域网中的IP**，且终端设备和电脑在同一网段，设备才能通过这个IP地址连到电脑上的服务。
+Note: If it's LAN debugging, your-server-ip should be configured as **the IP of your computer in the LAN**, and the terminal device and computer should be on the same network segment for the device to connect to the service on your computer through this IP address.
 
-#### OTA 地址配置（必配）
+#### OTA Address Configuration (Required)
 
 ```text
 http://your-server-ip:8080/api/ota/
 ```
 
-> ESP32 固件内置 OTA 地址，确保该服务地址可用，**服务运行后可以在浏览器中输出此地址，确认服务可以访问**。
+> ESP32 firmware has built-in OTA address. Ensure this service address is available. **After the service is running, you can output this address in the browser to confirm the service is accessible**.
 
-ESP32设备可以在联网界面修改OTA地址，从而在不重新刷固件的情况下，切换后端服务。
+ESP32 devices can modify the OTA address in the network interface, thus switching backend services without reflashing the firmware.
 
-#### 配置ASR，LLM，TTS
+#### Configure ASR, LLM, TTS
 
-根据配置文件的格式，配置好相关模型服务，尽量不要增减字段
+Configure related model services according to the configuration file format, try not to add or remove fields
 
 ---
 
 ## 💬 MCP 协议配置
 
-参考：`src/core/mcp/README.md`
+Reference: `src/core/mcp/README.md`
 
 ---
 
-## 🧪 源码安装与运行
+## 🧪 Source Code Installation and Running
 
-### 前置条件
+### Prerequisites
 
 * Go 1.24.2+
-* Windows 用户需安装 CGO 和 Opus 库（见下文）
+* Windows users need to install CGO and Opus libraries (see below)
 
 ```bash
 git clone https://github.com/AnimeAIChat/xiaozhi-server-go.git
@@ -118,9 +117,9 @@ cp config.yaml .config.yaml
 
 ---
 
-### Windows 安装 Opus 编译环境
+### Windows Opus Compilation Environment Installation
 
-安装 [MSYS2](https://www.msys2.org/)，打开MYSY2 MINGW64控制台，然后输入以下命令：
+Install [MSYS2](https://www.msys2.org/), open MYSY2 MINGW64 console, then enter the following commands:
 
 ```bash
 pacman -Syu
@@ -128,7 +127,7 @@ pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-go mingw-w64-x86_64-opus
 pacman -S mingw-w64-x86_64-pkg-config
 ```
 
-设置环境变量（用于 PowerShell 或系统变量）：
+Set environment variables (for PowerShell or system variables):
 
 ```bash
 set PKG_CONFIG_PATH=C:\msys64\mingw64\lib\pkgconfig
@@ -141,33 +140,33 @@ GO mod如果更新较慢，可以考虑设置go代理，切换国内镜像源。
 
 ---
 
-### 运行项目
+### Run Project
 
 ```bash
 go mod tidy
 go run ./src/main.go
 ```
 
-### 编译发布版本
+### Compile Release Version
 
 ```bash
 go build -o xiaozhi-server.exe src/main.go
 ```
 
-### 测试
-* 推荐使用ESP32硬件设备测试，可以最大程度避免兼容问题
-* 推荐使用玄凤小智Android客户端，在设置界面增加本地服务的ota地址即可。安卓版本在Release页面发布，可选择最新版本
+### Testing
+* Recommended to use ESP32 hardware device for testing to avoid compatibility issues to the greatest extent
+* Recommended to use Xuanfeng Xiaozhi Android client, add the local service's OTA address in the settings interface. Android version is released on the Release page, you can choose the latest version
   <img width="221" height="470" alt="image" src="https://github.com/user-attachments/assets/145a6612-8397-439b-9429-325855a99101" />
 
   [xiaozhi-0.0.6.apk](https://github.com/AnimeAIChat/xiaozhi-server-go/releases/download/v0.1.0/xiaozhi-0.0.6.apk)
-* 可使用其他兼容小智协议的客户端进行测试
+* Can use other clients compatible with Xiaozhi protocol for testing
 ---
 
-## 📚 Swagger 文档
+## 📚 Swagger Documentation
 
-* 打开浏览器访问：`http://localhost:8080/swagger/index.html`
+* Open browser and visit: `http://localhost:8080/swagger/index.html`
 
-### 更新 Swagger 文档（每次修改 API 后都要运行）
+### Update Swagger Documentation (run after every API modification)
 
 ```bash
 cd src
@@ -176,40 +175,39 @@ swag init -g main.go
 
 ---
 
-## ☁️ CentOS 源码部署指南
+## ☁️ CentOS Source Code Deployment Guide
 
-> 文档见：[Centos 8 安装指南](Centos_Guide.md)
-
----
-
-## Docker 环境部署
-
-1. 准备`docker-compose.yml`,`.config.yaml`,二进制程序文件
-
-👉 [点击前往 Releases 页面](https://github.com/AnimeAIChat/xiaozhi-server-go/releases)下载二进制程序文件
-
-* 选择你平台对应的版本（默认使用 Liunx: `linux-amd64-server-upx`，如使用其他版本，需要修改docker-compose.yml）
-
-2. 三个文件放到同一目录下，配置`docker-compose.yml`,`.config.yaml`
-
-3. 运行`docker compose up -d`
+> Documentation: [Centos 8 Installation Guide](Centos_Guide.md)
 
 ---
 
-## 💬 社区支持
+## Docker Environment Deployment
 
+1. Prepare `docker-compose.yml`, `.config.yaml`, binary program files
 
-欢迎提交 Issue、PR 或新功能建议！
+👉 [Click to go to Releases page](https://github.com/AnimeAIChat/xiaozhi-server-go/releases) to download binary program files
 
-<img src="https://github.com/user-attachments/assets/58b2f34c-a6ec-494f-a231-5f5f71cf6343" width="450" alt="微信群二维码">
+* Choose the version corresponding to your platform (default uses Linux: `linux-amd64-server-upx`, if using other versions, need to modify docker-compose.yml)
+
+2. Put the three files in the same directory, configure `docker-compose.yml`, `.config.yaml`
+
+3. Run `docker compose up -d`
 
 ---
 
-## 🛠️ 定制开发
+## 💬 Community Support
 
-我们接受各种定制化开发项目，如果您有特定需求，欢迎通过微信联系洽谈。
+Welcome to submit Issues, PRs or new feature suggestions!
 
-<img src="https://github.com/user-attachments/assets/e2639bc3-a58a-472f-9e72-b9363f9e79a3" width="450" alt="群主二维码">
+<img src="https://github.com/user-attachments/assets/58b2f34c-a6ec-494f-a231-5f5f71cf6343" width="450" alt="WeChat Group QR Code">
+
+---
+
+## 🛠️ Custom Development
+
+We accept various customized development projects. If you have specific needs, please contact us via WeChat for discussion.
+
+<img src="https://github.com/user-attachments/assets/e2639bc3-a58a-472f-9e72-b9363f9e79a3" width="450" alt="Group Owner QR Code">
 
 ## 📄 License
 

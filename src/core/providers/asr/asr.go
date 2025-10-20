@@ -138,7 +138,7 @@ func Create(name string, config *Config, deleteFile bool, logger *utils.Logger) 
 
 	provider, err := factory(config, deleteFile, logger)
 	if err != nil {
-		return nil, fmt.Errorf("创建ASR提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to create ASR provider: %v", err)
 	}
 
 	return provider, nil

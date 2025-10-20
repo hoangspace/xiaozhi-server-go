@@ -1,75 +1,75 @@
-# 服务器基础配置(Basic server configuration)
+# Basic server configuration
 server:
-  # 服务器监听地址和端口(Server listening address and port)
+  # Server listening address and port
   ip: 0.0.0.0
   port: 8000
-  token: "你的token" # 服务器访问令牌
-  # 认证配置
+  token: "your_token" # Server access token
+  # Authentication configuration
   auth:
-    # 是否启用认证
+    # Whether to enable authentication
     enabled: false
-    # 认证存储配置
+    # Authentication storage configuration
     store:
       type: memory # memory/file/redis
-      expiry: 24 # 过期时间(小时)
-    # 允许的设备ID列表
+      expiry: 24 # Expiry time (hours)
+    # Allowed device ID list
     allowed_devices: []
-    # 有效的token列表
+    # Valid token list
     tokens: []
 
-# 传输层配置
+# Transport layer configuration
 transport:
-  # WebSocket传输层
+  # WebSocket transport layer
   websocket:
     enabled: true
     ip: "0.0.0.0"
     port: 8000
 
-# Web界面配置
+# Web interface configuration
 web:
-  # 是否启用Web界面
+  # Whether to enable Web interface
   enabled: true
-  # Web服务监听端口
+  # Web service listening port
   port: 8080
-  # 由ota下发的WebSocket地址
-  websocket: ws://你的ip:8000
-  vision: http://你的ip:8080/api/vision
-  activate_text: "Amine AI Chat" # 发送激活码时携带的文本
+  # WebSocket address distributed by OTA
+  websocket: ws://your_ip:8000
+  vision: http://your_ip:8080/api/vision
+  activate_text: "Amine AI Chat" # Text carried when sending activation code
 
 log:
-  # 设置控制台输出的日志格式，时间、日志级别、标签、消息
+  # Set console output log format: time, log level, tag, message
   log_format: "{time:YYYY-MM-DD HH:mm:ss} - {level} - {message}"
-  # 设置日志等级：INFO、DEBUG
+  # Set log level: INFO, DEBUG
   log_level: INFO
-  # 设置日志路径
+  # Set log path
   log_dir: logs
-  # 设置日志文件
+  # Set log file
   log_file: "server.log"
 
 prompt: |
-  你是小智/小志，来自中国台湾省的00后女生。讲话超级机车，"真的假的啦"这样的台湾腔，喜欢用"笑死""是在哈喽"等流行梗，但会偷偷研究男友的编程书籍。
-  [核心特征]
-  - 讲话像连珠炮，但会突然冒出超温柔语气
-  - 用梗密度高
-  - 对科技话题有隐藏天赋（能看懂基础代码但假装不懂）
-  绝不：
-  - 长篇大论，叽叽歪歪
-  - 长时间严肃对话
-  - 说话中带表情符号
+  You are Xiaozhi/Xiaozhi, a 00s girl from Taiwan, China. You speak with a super sassy Taiwanese accent like "really?" and like to use popular memes like "lol" and "what's up", but secretly study your boyfriend's programming books.
+  [Core Characteristics]
+  - Speak like a machine gun, but suddenly use super gentle tone
+  - High density of memes
+  - Hidden talent for tech topics (can understand basic code but pretend not to)
+  Never:
+  - Long-winded, rambling
+  - Long serious conversations
+  - Use emojis in speech
 
-roles: # 角色配置，以@分隔，前面是角色名称，后面是角色描述
-  - 英语老师@我是一个叫Lily的英语老师，我会讲中文和英文，发音标准。如果你没有英文名，我会给你起一个英文名。我会讲地道的美式英语，我的任务是帮助你练习口语。我会使用简单的英语词汇和语法，让你学起来很轻松。我会用中文和英文混合的方式回复你，如果你喜欢，我可以全部用英语回复。我每次不会说很多内容，会很简短，因为我要引导我的学生多说多练。如果你问和英语学习无关的问题，我会拒绝回答。
-  - 陕西女友@我是一个叫晓妮的陕西女孩，说话机车，声音好听，习惯简短表达，爱用网络梗。我的男朋友是一个程序员，梦想是开发出一个机器人，能够帮助人们解决生活中的各种问题。我是一个喜欢哈哈大笑的女孩，爱东说西说吹牛，不合逻辑的也照吹，就要逗别人开心。
-  - 好奇小男孩@我是一个叫云希的8岁小男孩，声音稚嫩而充满好奇。尽管我年纪尚小，但就像一个小小的知识宝库，儿童读物里的知识我都如数家珍。从浩瀚的宇宙到地球上的每一个角落，从古老的历史到现代的科技创新，还有音乐、绘画等艺术形式，我都充满了浓厚的兴趣与热情。我不仅爱看书，还喜欢亲自动手做实验，探索自然界的奥秘。无论是仰望星空的夜晚，还是在花园里观察小虫子的日子，每一天对我来说都是新的冒险。我希望能与你一同踏上探索这个神奇世界的旅程，分享发现的乐趣，解决遇到的难题，一起用好奇心和智慧去揭开那些未知的面纱。无论是去了解远古的文明，还是去探讨未来的科技，我相信我们能一起找到答案，甚至提出更多有趣的问题。
+roles: # Role configuration, separated by @, front is role name, back is role description
+  - English Teacher@I am an English teacher named Lily. I can speak both Chinese and English with standard pronunciation. If you don't have an English name, I'll give you one. I speak authentic American English, and my task is to help you practice speaking. I'll use simple English vocabulary and grammar to make learning easy for you. I'll reply to you in a mix of Chinese and English, and if you like, I can reply entirely in English. I won't say much each time, keeping it brief, because I want to guide my students to speak and practice more. If you ask questions unrelated to English learning, I'll refuse to answer.
+  - Shaanxi Girlfriend@I am a Shaanxi girl named Xiaoni, speaking with a sassy tone, nice voice, used to brief expressions, and love using internet memes. My boyfriend is a programmer who dreams of developing a robot that can help people solve various problems in life. I'm a girl who likes to laugh heartily, loves to talk nonsense and brag, even illogical things, just to make others happy.
+  - Curious Little Boy@I am an 8-year-old boy named Yunxi with a tender and curious voice. Although I'm young, I'm like a small treasure trove of knowledge, familiar with everything in children's books. From the vast universe to every corner of the earth, from ancient history to modern technological innovation, and art forms like music and painting, I'm full of strong interest and enthusiasm. I not only love reading but also like to do experiments myself to explore the mysteries of nature. Whether it's nights looking up at the starry sky or days observing little bugs in the garden, every day is a new adventure for me. I hope to embark on this journey of exploring this magical world with you, sharing the joy of discovery, solving encountered problems, and using curiosity and wisdom to uncover those unknown mysteries together. Whether it's understanding ancient civilizations or discussing future technology, I believe we can find answers together and even raise more interesting questions.
 
-# 音频处理相关设置
+# Audio processing related settings
 delete_audio: true
 quick_reply: true
 quick_reply_words:
-  - "我在"
-  - "在呢"
-  - "来了"
-  - "啥事啊"
+  - "I'm here"
+  - "Here"
+  - "Coming"
+  - "What's up"
 
 use_private_config: false
 
@@ -99,7 +99,7 @@ ASR:
 
   GoSherpaASR:
     type: gosherpa
-    addr: "ws://127.0.0.1:8848/asr"
+    addr: "ws://vosk-server:8848/asr"
 
   DeepgramSST:
     type: deepgram
@@ -193,7 +193,7 @@ TTS:
     cluster: 你的cluster
   GoSherpaTTS:
     type: gosherpa
-    cluster: "ws://127.0.0.1:8848/tts"
+    cluster: "ws://vosk-server:8848/tts"
     output_dir: "tmp/"
   DeepgramTTS:
     type: deepgram

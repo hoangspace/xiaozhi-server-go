@@ -78,11 +78,11 @@ func Create(name string, config *Config) (Provider, error) {
 
 	provider, err := factory(config)
 	if err != nil {
-		return nil, fmt.Errorf("创建LLM提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to create LLM provider: %v", err)
 	}
 
 	if err := provider.Initialize(); err != nil {
-		return nil, fmt.Errorf("初始化LLM提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to initialize LLM provider: %v", err)
 	}
 
 	return provider, nil

@@ -101,11 +101,11 @@ func (p *BaseProvider) Cleanup() error {
 		pattern := filepath.Join(p.config.OutputDir, "*.{wav,mp3,opus}")
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
-			return fmt.Errorf("查找临时文件失败: %v", err)
+			return fmt.Errorf("Failed to find temporary files: %v", err)
 		}
 		for _, file := range matches {
 			if err := os.Remove(file); err != nil {
-				return fmt.Errorf("删除临时文件失败: %v", err)
+				return fmt.Errorf("Failed to delete temporary file: %v", err)
 			}
 		}
 	}
@@ -131,11 +131,11 @@ func Create(name string, config *Config, deleteFile bool) (Provider, error) {
 
 	provider, err := factory(config, deleteFile)
 	if err != nil {
-		return nil, fmt.Errorf("创建TTS提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to create TTS provider: %v", err)
 	}
 
 	if err := provider.Initialize(); err != nil {
-		return nil, fmt.Errorf("初始化TTS提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to initialize TTS provider: %v", err)
 	}
 
 	return provider, nil

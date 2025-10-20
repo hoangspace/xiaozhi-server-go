@@ -38,7 +38,7 @@ func NewPoolManager(config *configs.Config, logger *utils.Logger) (*PoolManager,
 
 	// 执行连通性检查
 	if err := pm.performConnectivityCheck(config, logger); err != nil {
-		return nil, fmt.Errorf("资源连通性检查失败: %v", err)
+		return nil, fmt.Errorf("Resource connectivity check failed: %v", err)
 	}
 
 	interval := config.PoolConfig.PoolCheckInterval
@@ -63,59 +63,59 @@ func NewPoolManager(config *configs.Config, logger *utils.Logger) (*PoolManager,
 		}
 		asrPool, err := NewResourcePool("asrPool", asrFactory, poolConfig, logger)
 		if err != nil {
-			return nil, fmt.Errorf("初始化ASR资源池失败: %v", err)
+			return nil, fmt.Errorf("Failed to initialize ASR resource pool: %v", err)
 		}
 		pm.asrPool = asrPool
 		_, cnt := asrPool.GetStats()
-		logger.Info("ASR资源池初始化成功，类型: %s, 数量：%d", asrType, cnt)
+		logger.Info("ASR resource pool initialized successfully, type: %s, count: %d", asrType, cnt)
 	}
 
 	// 初始化LLM池
 	if llmType, ok := selectedModule["LLM"]; ok && llmType != "" {
 		llmFactory := NewLLMFactory(llmType, config, logger)
 		if llmFactory == nil {
-			return nil, fmt.Errorf("创建LLM工厂失败: 找不到配置 %s", llmType)
+			return nil, fmt.Errorf("Failed to create LLM factory: configuration not found %s", llmType)
 		}
 		llmPool, err := NewResourcePool("llmPool", llmFactory, poolConfig, logger)
 		if err != nil {
-			return nil, fmt.Errorf("初始化LLM资源池失败: %v", err)
+			return nil, fmt.Errorf("Failed to initialize LLM resource pool: %v", err)
 		}
 		pm.llmPool = llmPool
 		_, cnt := llmPool.GetStats()
-		logger.Info("LLM资源池初始化成功，类型: %s, 数量：%d", llmType, cnt)
+		logger.Info("LLM resource pool initialized successfully, type: %s, count: %d", llmType, cnt)
 	}
 
 	// 初始化TTS池
 	if ttsType, ok := selectedModule["TTS"]; ok && ttsType != "" {
 		ttsFactory := NewTTSFactory(ttsType, config, logger)
 		if ttsFactory == nil {
-			return nil, fmt.Errorf("创建TTS工厂失败: 找不到配置 %s", ttsType)
+			return nil, fmt.Errorf("Failed to create TTS factory: configuration not found %s", ttsType)
 		}
 		ttsPool, err := NewResourcePool("ttsPool", ttsFactory, poolConfig, logger)
 		if err != nil {
-			return nil, fmt.Errorf("初始化TTS资源池失败: %v", err)
+			return nil, fmt.Errorf("Failed to initialize TTS resource pool: %v", err)
 		}
 		pm.ttsPool = ttsPool
 		_, cnt := ttsPool.GetStats()
-		logger.Info("TTS资源池初始化成功，类型: %s, 数量：%d", ttsType, cnt)
+		logger.Info("TTS resource pool initialized successfully, type: %s, count: %d", ttsType, cnt)
 	}
 
 	// 初始化VLLLM池（可选）
 	if vlllmType, ok := selectedModule["VLLLM"]; ok && vlllmType != "" {
 		vlllmFactory := NewVLLLMFactory(vlllmType, config, logger)
 		if vlllmFactory == nil {
-			logger.Warn("创建VLLLM工厂失败: 找不到配置 %s", vlllmType)
+			logger.Warn("Failed to create VLLLM factory: configuration not found %s", vlllmType)
 		} else {
 			vlllmPool, err := NewResourcePool("vllmPool", vlllmFactory, poolConfig, logger)
 			if err != nil {
-				logger.Warn("初始化VLLLM资源池失败（将继续使用普通LLM）: %v", err)
+				logger.Warn("Failed to initialize VLLLM resource pool (will continue using regular LLM): %v", err)
 			} else {
 				pm.vlllmPool = vlllmPool
 			}
 		}
 		if pm.vlllmPool != nil {
 			_, cnt := pm.vlllmPool.GetStats()
-			logger.Info("VLLLM资源池初始化成功，类型: %s, 数量：%d", vlllmType, cnt)
+			logger.Info("VLLLM resource pool initialized successfully, type: %s, count: %d", vlllmType, cnt)
 		} else {
 			logger.Warn("VLLLM资源池未初始化，将使用普通LLM")
 		}
@@ -129,18 +129,18 @@ func NewPoolManager(config *configs.Config, logger *utils.Logger) (*PoolManager,
 	}
 
 	// 初始化MCP池（总是初始化，因为MCP是核心功能）
-	logger.Info("开始初始化MCP资源池，请等待...")
+	logger.Info("Starting MCP resource pool initialization, please wait...")
 	mcpFactory := NewMCPFactory(config, logger)
 	if mcpFactory != nil {
 		mcpPool, err := NewResourcePool("mcpPool", mcpFactory, poolConfig, logger)
 		if err != nil {
-			return nil, fmt.Errorf("初始化MCP资源池失败: %v", err)
+			return nil, fmt.Errorf("Failed to initialize MCP resource pool: %v", err)
 		}
 		pm.mcpPool = mcpPool
 		_, cnt := mcpPool.GetStats()
-		logger.Info("MCP资源池初始化成功，数量：%d", cnt)
+		logger.Info("MCP resource pool initialized successfully, count: %d", cnt)
 	} else {
-		logger.Warn("创建MCP工厂失败，MCP功能将不可用")
+		logger.Warn("Failed to create MCP factory, MCP functionality will be unavailable")
 	}
 
 	return pm, nil
@@ -169,7 +169,7 @@ func (pm *PoolManager) GetProviderSet() (*ProviderSet, error) {
 	if pm.ttsPool != nil {
 		tts, err := pm.ttsPool.Get()
 		if err != nil {
-			return nil, fmt.Errorf("获取TTS提供者失败: %v", err)
+			return nil, fmt.Errorf("Failed to get TTS provider: %v", err)
 		}
 		set.TTS = tts.(providers.TTSProvider)
 	}

@@ -42,12 +42,12 @@ func Create(name string, vlllmConfig *configs.VLLMConfig, logger *utils.Logger) 
 	// 创建提供者实例
 	provider, err := factory(config, logger)
 	if err != nil {
-		return nil, fmt.Errorf("创建VLLLM提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to create VLLLM provider: %v", err)
 	}
 
 	// 初始化提供者
 	if err := provider.Initialize(); err != nil {
-		return nil, fmt.Errorf("初始化VLLLM提供者失败: %v", err)
+		return nil, fmt.Errorf("Failed to initialize VLLLM provider: %v", err)
 	}
 
 	logger.Debug("VLLLM提供者创建成功 %v", map[string]interface{}{

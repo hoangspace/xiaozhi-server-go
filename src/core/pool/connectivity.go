@@ -138,7 +138,7 @@ func NewHealthChecker(
 // CheckAllProviders 检查所有配置的提供者
 func (hc *HealthChecker) CheckAllProviders(ctx context.Context, mode CheckMode) error {
 	if !hc.connConfig.Enabled {
-		hc.logger.Info("连通性检查已禁用，跳过检查")
+		hc.logger.Info("Connectivity check disabled, skipping check")
 		return nil
 	}
 
@@ -154,21 +154,21 @@ func (hc *HealthChecker) CheckAllProviders(ctx context.Context, mode CheckMode) 
 	// 检查ASR
 	if asrType, ok := selectedModule["ASR"]; ok && asrType != "" {
 		if err := hc.checkASRProvider(ctx, asrType, mode); err != nil {
-			allErrors = append(allErrors, fmt.Errorf("ASR%s检查失败: %v", checkTypeName, err))
+			allErrors = append(allErrors, fmt.Errorf("ASR %s check failed: %v", checkTypeName, err))
 		}
 	}
 
 	// 检查LLM
 	if llmType, ok := selectedModule["LLM"]; ok && llmType != "" {
 		if err := hc.checkLLMProvider(ctx, llmType, mode); err != nil {
-			allErrors = append(allErrors, fmt.Errorf("LLM%s检查失败: %v", checkTypeName, err))
+			allErrors = append(allErrors, fmt.Errorf("LLM %s check failed: %v", checkTypeName, err))
 		}
 	}
 
 	// 检查TTS
 	if ttsType, ok := selectedModule["TTS"]; ok && ttsType != "" {
 		if err := hc.checkTTSProvider(ctx, ttsType, mode); err != nil {
-			allErrors = append(allErrors, fmt.Errorf("TTS%s检查失败: %v", checkTypeName, err))
+			allErrors = append(allErrors, fmt.Errorf("TTS %s check failed: %v", checkTypeName, err))
 		}
 	}
 
@@ -181,14 +181,14 @@ func (hc *HealthChecker) CheckAllProviders(ctx context.Context, mode CheckMode) 
 	}
 
 	if len(allErrors) > 0 {
-		hc.logger.Error("%s检查失败，详细信息:", checkTypeName)
+		hc.logger.Error("%s check failed, details:", checkTypeName)
 		for _, err := range allErrors {
 			hc.logger.Error("  - %v", err)
 		}
-		return fmt.Errorf("%s检查失败: %d个服务不可用", checkTypeName, len(allErrors))
+		return fmt.Errorf("%s check failed: %d services unavailable", checkTypeName, len(allErrors))
 	}
 
-	hc.logger.Info("所有资源%s检查通过", checkTypeName)
+		hc.logger.Info("All resources %s check passed", checkTypeName)
 	return nil
 }
 
@@ -686,7 +686,7 @@ func (hc *HealthChecker) GetResults() map[string]*CheckResult {
 
 // PrintReport 打印检查报告
 func (hc *HealthChecker) PrintReport() {
-	hc.logger.Info("=== 连通性检查报告 ===")
+	hc.logger.Info("=== Connectivity Check Report ===")
 
 	for providerType, result := range hc.results {
 		status := "✓ 通过"
@@ -712,5 +712,5 @@ func (hc *HealthChecker) PrintReport() {
 		}
 	}
 
-	hc.logger.Info("=== 检查报告结束 ===")
+	hc.logger.Info("=== Check Report Complete ===")
 }

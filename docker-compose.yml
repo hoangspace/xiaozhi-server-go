@@ -1,12 +1,23 @@
 services:
+  vosk-server:
+    image: vosk-server:latest
+    container_name: vosk-server
+    restart: unless-stopped
+    ports:
+      - "8848:8848"
+    environment:
+      - VOSK_MODEL_PATH=/opt/vosk-server/model
+
   app:
-    image: ghcr.io/animeaichat/xiaozhi-server-go:server
+    image: xiaozhi-server-go:latest
     container_name: xiaozhi-server
     restart: unless-stopped
+    depends_on:
+      - vosk-server
     volumes:
-      - .:/app
+      - /home/bmhoang/xiaozhi-server-config.yaml:/app/config.yaml
+      - ./music:/app/music
     working_dir: /app
-    command: ["./linux-amd64-server-upx"] #修改成程序文件名
     ports:
       - "8080:8080"
       - "8000:8000"
@@ -14,3 +25,9 @@ services:
       - DATABASE_URL=sqlite://./config.db
       - ENV=production
       - PORT=8080
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token eyJhIjoiNDk3ZjIxZDEyZmI3MThkZGVhN2QyZGE2YzFhNmM1YTgiLCJ0IjoiYjk2MmUyNzAtZWQ5MS00NmVhLWIxZWMtYzBkMzE3ZjU4NzQyIiwicyI6Ik5XTmpPRGhsTmpBdE1EQXpZUzAwWWpabUxUazNZekF0TW1GaE9HWXdPRGd6T0dKbSJ9
+
